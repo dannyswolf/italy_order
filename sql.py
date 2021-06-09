@@ -10,15 +10,16 @@
 import datetime
 import sys
 import traceback
-from settings import database, root_logger
+import pandas as pd
+from settings import database, root_logger, book, sheet
 
 from sqlalchemy import create_engine, Column, Integer, ForeignKey, Text
 from sqlalchemy.orm import sessionmaker, relationship, backref
 from sqlalchemy.ext.declarative import declarative_base
 
+
 sys.stderr.write = root_logger.error
 sys.stdout.write = root_logger.info
-
 
 ital_engine = create_engine(f"sqlite:///{database}")
 Ital_Session = sessionmaker(bind=ital_engine)()
@@ -117,7 +118,8 @@ class Order(Ital_Base):
 # Αποκόμηση δεδομένων απο τον πίνακα
 def get_spare_parts(machine_id):
     try:
-        data = Ital_Session.query(SparePart).filter(SparePart.machine == machine_id).order_by(SparePart.description).all()
+        data = Ital_Session.query(SparePart).filter(SparePart.machine == machine_id).order_by(
+            SparePart.description).all()
 
         return data
     except Exception:
@@ -161,7 +163,6 @@ def get_model(machine_id):
 
 
 def save_to_basket(part_id=None, pieces=None):
-
     spare_part = Ital_Session.query(SparePart).get(part_id)
     machine_id = spare_part.machine
     ml_code = spare_part.ml_code
@@ -172,7 +173,8 @@ def save_to_basket(part_id=None, pieces=None):
     price = spare_part.ital_price.replace(" €", "").replace(",", ".")
     total = "{:.2f}".format(float(price) * int(pieces))
     machine_model = spare_part.machine_ref
-    item_to_basket = Basket(machine=machine_id, ml_code=ml_code, spare_part=part_id, price=price, pieces=pieces, total=total)
+    item_to_basket = Basket(machine=machine_id, ml_code=ml_code, spare_part=part_id, price=price, pieces=pieces,
+                            total=total)
     Ital_Session.add(item_to_basket)
     Ital_Session.commit()
 
@@ -184,7 +186,6 @@ def get_basket():
 
 
 def save_basket(items_to_save=None, items_ids=None):
-
     try:
         for index in range(len(items_to_save)):
             spare_part = Ital_Session.query(Basket).get(items_to_save[index]["ID"])
@@ -204,8 +205,7 @@ def save_basket(items_to_save=None, items_ids=None):
     except Exception:
         print(traceback.print_exc())
         return traceback.print_exc()
-# Create Tables
-# Base.metadata.create_all(engine)
+
 
 def get_prices_date(machine_id):
     try:
@@ -215,6 +215,136 @@ def get_prices_date(machine_id):
     except Exception:
         print(traceback.print_exc())
         return
+
+
+def colorized(v):
+    sharp_color = '#C4BD97'
+    konica_color = '#8EB4E3'
+    overall_total_color = '#92d050'
+
+    if 'Sharp' in str(v):
+        color = sharp_color
+
+    elif 'Konica' in str(v):
+        color = konica_color
+
+    elif 'Τελικό σύνολο' in str(v):
+        color = overall_total_color
+
+    else:
+        return
+
+    return 'background-color: %s' % f'{color}'
+
+
+def save_order():
+    all_bask_obj = Ital_Session.query(Basket).join(SparePart).all()
+
+    today = datetime.datetime.today().strftime("%d.%m.%Y")
+    writer = pd.ExcelWriter(f'{book}', mode="a", engine='openpyxl')
+    machines_list = []
+    final_df = {}
+    d = {'Μηχάνημα': [], 'Κωδικός': [], 'Κωδικός Ιταλίας': [], 'Περιγραφή': [], 'Τεμάχια': [], 'Τιμή': [], "Σύνολο": []}
+    all_totals = []
+    try:
+        for item in all_bask_obj:
+            # κενές γραμμές
+            if item.machine_ref.model in machines_list:
+                d['Μηχάνημα'].append("")
+
+            else:
+                # Αν δεν είναι στην λίστα να βαλει  κενες γραμμές και μετα τα δεδομένα
+                machines_list.append(item.machine_ref.model)
+                d['Μηχάνημα'].append("")
+                d['Κωδικός'].append("")
+                d['Κωδικός Ιταλίας'].append("")
+                d['Περιγραφή'].append("")
+                d['Τεμάχια'].append("")
+                d['Τιμή'].append("")
+                d['Σύνολο'].append("")
+
+                d['Μηχάνημα'].append(item.machine_ref.model)
+                d['Κωδικός'].append("")
+                d['Κωδικός Ιταλίας'].append("")
+                d['Περιγραφή'].append("")
+                d['Τεμάχια'].append("")
+                d['Τιμή'].append("")
+                d['Σύνολο'].append("")
+
+                d['Μηχάνημα'].append("")
+                d['Κωδικός'].append(item.ml_code)
+                d['Κωδικός Ιταλίας'].append(item.spare_part_ref.ital_code)
+                d['Περιγραφή'].append(item.spare_part_ref.description)
+                d['Τεμάχια'].append(item.pieces)
+                d['Τιμή'].append(item.price + ' €')
+                d['Σύνολο'].append(item.total + ' €')
+                all_totals.append(float(item.total))
+                order_item = Order(date=today, machine=item.machine, spare_part=item.spare_part,
+                                   price=item.price, pieces=int(item.pieces), total=item.total)
+                Ital_Session.add(order_item)
+                continue
+
+            d['Κωδικός'].append(item.ml_code)
+            d['Κωδικός Ιταλίας'].append(item.spare_part_ref.ital_code)
+            d['Περιγραφή'].append(item.spare_part_ref.description)
+            d['Τεμάχια'].append(item.pieces)
+            d['Τιμή'].append(str(item.price) + ' €')
+            d['Σύνολο'].append(str(item.total) + ' €')
+            all_totals.append(float(item.total))
+            order_item = Order(date=today, machine=item.machine, spare_part=item.spare_part,
+                               price=item.price, pieces=int(item.pieces), total=item.total)
+            Ital_Session.add(order_item)
+
+        # Γραμμή Τελίκό Σύνολο
+        d['Μηχάνημα'].append("")
+        d['Κωδικός'].append("")
+        d['Κωδικός Ιταλίας'].append("")
+        d['Περιγραφή'].append("")
+        d['Τεμάχια'].append("")
+        d['Τιμή'].append("")
+        d['Σύνολο'].append('')
+
+        d['Μηχάνημα'].append("Τελικό σύνολο")
+        d['Κωδικός'].append("")
+        d['Κωδικός Ιταλίας'].append("")
+        d['Περιγραφή'].append("")
+        d['Τεμάχια'].append("")
+        d['Τιμή'].append("")
+        d['Σύνολο'].append(str("{:.2f}".format(sum(all_totals))) + ' €')
+        df = pd.DataFrame(data=d)
+        styled = df.style.applymap(colorized)
+        # print("df.Μηχάνημα", df.Μηχάνημα)
+        # styled.to_excel('styled.xlsx', engine='openpyxl', index=False)
+        print("sheet", sheet)
+        styled.to_excel(writer, sheet_name=f'{sheet}', startcol=1, startrow=2, index=False)
+        writer.save()
+        # Ital_Session.commit()
+        # Αδειασμα πίνακα καλαθιού - basket
+        Ital_Session.query(Basket).delete()
+        Ital_Session.commit()
+        return True
+    except Exception:
+        print(traceback.print_exc())
+        return traceback.print_exc()
+
+
+def get_orders_dates():
+    orders_obj = Ital_Session.query(Order).order_by(Order.date).all()
+    dates = []
+    for order in orders_obj:
+        if order.date not in dates:
+            dates.append(order.date)
+    dates.sort(key=lambda date: datetime.datetime.strptime(date, '%d.%m.%Y'))
+    return dates
+
+
+def get_history(selected_date=None):
+    data = Ital_Session.query(Order).filter(Order.date == selected_date).all()
+    return data
+
+    # Create Tables
+# Base.metadata.create_all(engine)
+
 # Insert data
 # pay1 = Payments(supplier_id=9, amount=20, date=datetime.date.today())
 # Session.add(pay1)

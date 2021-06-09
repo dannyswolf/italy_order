@@ -31,16 +31,16 @@ with open(credentials, "r", encoding='utf8') as cred:
 info_login_url = cred_obj["info_login_url"]["url"]
 info_payload = cred_obj['info_payload']
 
+info_session = requests.Session()
+retry = Retry(connect=3, backoff_factor=0.5)
+adapter = HTTPAdapter(max_retries=retry)
+info_session.mount('http://', adapter)
+info_session.mount('https://', adapter)
+
 
 def get_info_price(info_site_code):
     try:
-        info_session = requests.Session()
-        retry = Retry(connect=3, backoff_factor=0.5)
-        adapter = HTTPAdapter(max_retries=retry)
-        info_session.mount('http://', adapter)
-        info_session.mount('https://', adapter)
         info_response = info_session.post(info_login_url, data=info_payload)
-
         info_product_url = f"http://www.infocopy.gr/index.php?com=products1&id={info_site_code}"
         info_html = info_session.get(info_product_url)
         info_html_data = info_html.text

@@ -33,14 +33,14 @@ ital_payload = cred_obj['ital_payload']
 ital_session = requests.Session()
 # headers = {"User-Agent": "Mozilla/5.0 (X11; CrOS x86_64 12871.102.0) AppleWebKit/537.36 (KHTML, like Gecko) "
 #                          "Chrome/81.0.4044.141 Safari/537.36"}
+retry = Retry(connect=3)
+adapter = HTTPAdapter(max_retries=retry)
+ital_session.mount('http://', adapter)
+ital_session.mount('https://', adapter)
 
 
 def get_ital_price(ital_code):
     try:
-        retry = Retry(connect=3)
-        adapter = HTTPAdapter(max_retries=retry)
-        ital_session.mount('http://', adapter)
-        ital_session.mount('https://', adapter)
         ital_response = ital_session.post(ital_login_url, data=ital_payload)
         ital_requests_url = f'https://www.itrip.it/default.php?t=ecomm&act=personal&search=1&codice={ital_code}'
         with ital_session.get(ital_requests_url) as ital_html:

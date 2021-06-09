@@ -14,11 +14,13 @@ import sys
 import datetime
 
 
-version = "V 0.1"
+version = "V 0.2"
 credentials = "credentials.yml"
 database = "italia.db"
 ml_db = "3. ΚΑΙΝΟΥΡΙΑ_ΑΠΟΘΗΚΗ.db"
-
+book = 'ΙΤΑΛΙΑ - Copy.xlsx'
+today = datetime.datetime.today().strftime("%d.%m.%Y")
+sheet = f'ΠΑΡΑΓΓΕΛΙΑ ΜΑΚΗΣ {today}'
 # -------------ΔΗΜΗΟΥΡΓΕΙΑ LOG FILE και Ημερομηνία ------------------
 today = datetime.datetime.today().strftime("%d %m %Y")
 log_dir = "logs" + "/" + today + "/"

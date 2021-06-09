@@ -5,7 +5,7 @@
 #                  Παραγγελίες Ιταλία
 #                  Ντίνι Ιορδάνης
 #                  2021
-# V 0.1
+# V 0.3
 # ----------------------------------------------------------
 
 import logging
@@ -14,7 +14,7 @@ import sys
 import datetime
 
 
-version = "V 0.2"
+version = "V 0.3"
 credentials = "credentials.yml"
 database = "italia.db"
 ml_db = "3. ΚΑΙΝΟΥΡΙΑ_ΑΠΟΘΗΚΗ.db"

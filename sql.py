@@ -315,7 +315,6 @@ def save_order():
         styled = df.style.applymap(colorized)
         # print("df.Μηχάνημα", df.Μηχάνημα)
         # styled.to_excel('styled.xlsx', engine='openpyxl', index=False)
-        print("sheet", sheet)
         styled.to_excel(writer, sheet_name=f'{sheet}', startcol=1, startrow=2, index=False)
         writer.save()
         # Ital_Session.commit()
@@ -342,6 +341,20 @@ def get_history(selected_date=None):
     data = Ital_Session.query(Order).filter(Order.date == selected_date).all()
     return data
 
+
+def make_changed_order(items_to_save=None):
+    try:
+        remaining_item = items_to_save
+
+        all_ids_obj = Ital_Session.query(Order).all()
+        for item in all_ids_obj:
+            if item.ID not in remaining_item:
+                Ital_Session.delete(item)
+                Ital_Session.commit()
+        return True
+    except Exception:
+        print(traceback.print_exc())
+        return False
     # Create Tables
 # Base.metadata.create_all(engine)
 

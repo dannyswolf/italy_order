@@ -16,7 +16,10 @@ from settings import database, root_logger, book, sheet
 from sqlalchemy import create_engine, Column, Integer, ForeignKey, Text
 from sqlalchemy.orm import sessionmaker, relationship, backref
 from sqlalchemy.ext.declarative import declarative_base
+import random
 
+number_of_colors = 12
+random_color = ["#" + ''.join([random.choice('0123456789ABCDEF') for j in range(6)]) for i in range(number_of_colors)]
 
 sys.stderr.write = root_logger.error
 sys.stdout.write = root_logger.info
@@ -220,21 +223,54 @@ def get_prices_date(machine_id):
 def colorized(v):
     sharp_color = '#C4BD97'
     konica_color = '#8EB4E3'
+    ricoh_color = '#ff007f'
+    canon_color = '#aa0000'
+    epson_color = '#0000ff'
+    kyocera_color = '#ff00ff'
+    lexmark_color = '#00aa7f'
+    oki_color = '#ff007f'
+    samsung_color = '#1c60ff'
+    white_color = '#ffffff'
+    brother_color = ''
     overall_total_color = '#92d050'
 
-    if 'Sharp' in str(v):
-        color = sharp_color
+    if 'sharp' in str(v).lower():
+        return 'background-color: %s' % f'{sharp_color}'
 
-    elif 'Konica' in str(v):
-        color = konica_color
+    elif 'konica' in str(v).lower():
+        return 'background-color: %s' % f'{konica_color}'
 
     elif 'Τελικό σύνολο' in str(v):
-        color = overall_total_color
+        return 'background-color: %s' % f'{overall_total_color}'
 
+    elif 'ricoh' in str(v).lower():
+        return 'background-color: %s' % f'{ricoh_color}'
+
+    elif 'brother' in str(v).lower():
+        return f"'background-color: %s' % '{brother_color} 'color: %s' % f'{white_color}"
+
+    elif 'canon' in str(v).lower():
+        return f"'background-color: %s' % '{canon_color} 'color: %s' % f'{white_color}"
+
+    elif 'epson' in str(v).lower():
+        return f"'background-color: %s' % '{epson_color} 'color: %s' % f'{white_color}"
+
+    elif 'epson' in str(v).lower():
+        return f"'background-color: %s' % '{epson_color} 'color: %s' % f'{white_color}"
+
+    elif 'kyocera' in str(v).lower():
+        return f"'background-color: %s' % '{kyocera_color} 'color: %s' % f'{white_color}"
+
+    elif 'lexmark' in str(v).lower():
+        return f"'background-color: %s' % '{lexmark_color} 'color: %s' % f'{white_color}"
+
+    elif 'oki' in str(v).lower():
+        return f"'background-color: %s' % '{oki_color} 'color: %s' % f'{white_color}"
+
+    elif 'samsung' in str(v).lower():
+        return f"'background-color: %s' % '{samsung_color} 'color: %s' % f'{white_color}"
     else:
         return
-
-    return 'background-color: %s' % f'{color}'
 
 
 def save_order():
@@ -355,6 +391,14 @@ def make_changed_order(items_to_save=None):
     except Exception:
         print(traceback.print_exc())
         return False
+
+
+def get_machines_id():
+    all_machines = []
+    machines = Ital_Session.query(Machine).all()
+    for machine in machines:
+        all_machines.append(machine.model)
+    return all_machines
     # Create Tables
 # Base.metadata.create_all(engine)
 

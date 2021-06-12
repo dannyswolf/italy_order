@@ -12,17 +12,16 @@ import logging
 import os
 import sys
 import datetime
-
+import jinja2
 
 version = "V 0.4"
 credentials = "credentials.yml"
-database = "italia.db"
-ml_db = "3. ΚΑΙΝΟΥΡΙΑ_ΑΠΟΘΗΚΗ.db"
-book = 'ΙΤΑΛΙΑ - Copy.xlsx'
+database = "\\\\192.168.1.200\\Public\\GOOGLE-DRIVE\\ΕΓΓΡΑΦΑ\\9.  mlshop.gr\\2. ΠΑΡΑΓΓΕΛΙΑ απο ΙΤΑΛΙΑ\\italia.db"
+ml_db = "\\\\192.168.1.200\\Public\\GOOGLE-DRIVE\\ΕΓΓΡΑΦΑ\\2.  ΑΠΟΘΗΚΗ\\3. ΚΑΙΝΟΥΡΙΑ_ΑΠΟΘΗΚΗ.db"
+book = '\\\\192.168.1.200\\Public\\GOOGLE-DRIVE\\ΕΓΓΡΑΦΑ\\9.  mlshop.gr\\2. ΠΑΡΑΓΓΕΛΙΑ απο ΙΤΑΛΙΑ\\ΙΤΑΛΙΑ.xlsx'
 today = datetime.datetime.today().strftime("%d.%m.%Y")
 sheet = f'ΠΑΡΑΓΓΕΛΙΑ ΜΑΚΗΣ {today}'
 # -------------ΔΗΜΗΟΥΡΓΕΙΑ LOG FILE και Ημερομηνία ------------------
-today = datetime.datetime.today().strftime("%d %m %Y")
 log_dir = "logs" + "/" + today + "/"
 if not os.path.exists(log_dir):
     os.makedirs(log_dir)

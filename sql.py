@@ -12,7 +12,7 @@ import sys
 import traceback
 import pandas as pd
 from settings import database, root_logger, book, sheet
-
+import openpyxl
 from sqlalchemy import create_engine, Column, Integer, ForeignKey, Text
 from sqlalchemy.orm import sessionmaker, relationship, backref
 from sqlalchemy.ext.declarative import declarative_base
